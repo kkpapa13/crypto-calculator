@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>歷史紀錄</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        .container { max-width: 1200px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        nav { margin-bottom: 1em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">計算機首頁</a> | <a href="/records">查看歷史紀錄</a>
+        </nav>
+        <h1>交易歷史紀錄</h1>
+        {% if records %}
+        <table>
+            <thead>
+                <tr>
+                    <th>時間</th>
+                    <th>總資金</th>
+                    <th>投入保證金</th>
+                    <th>倉位大小</th>
+                    <th>槓桿倍數</th>
+                    <th>開倉價</th>
+                    <th>止盈價</th>
+                    <th>利潤金額</th>
+                    <th>利潤%</th>
+                    <th>止損價</th>
+                    <th>虧損金額</th>
+                    <th>虧損%</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                <tr>
+                    <td>{{ record['timestamp'] }}</td>
+                    <td>${{ record['total_capital']|round(2) }}</td>
+                    <td>${{ record['margin_to_use']|round(2) }}</td>
+                    <td>${{ record['position_size']|round(2) }}</td>
+                    <td>{{ record['leverage']|round(2) }}x</td>
+                    <td>${{ record['entry_price']|round(2) }}</td>
+                    <td>
+                        {% if record['take_profit_price'] is not none %}
+                            ${{ record['take_profit_price']|round(2) }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record['profit_amount'] is not none %}
+                            ${{ record['profit_amount']|round(2) }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record['profit_percentage'] is not none %}
+                            {{ record['profit_percentage']|round(2) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>${{ record['stop_loss_price']|round(2) }}</td>
+                    <td>
+                        {% if record['max_loss_amount'] is not none %}
+                            ${{ record['max_loss_amount']|round(2) }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record['max_loss_percentage'] is not none %}
+                            {{ record['max_loss_percentage']|round(2) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>目前沒有任何紀錄。</p>
+        {% endif %}
+    </div>
+</body>
+</html>

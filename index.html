@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>加密貨幣開倉計算機</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 2em; }
+        .container { max-width: 800px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px; }
+        .form-group { margin-bottom: 1em; }
+        label { display: block; margin-bottom: 0.5em; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        .result { margin-top: 2em; border-top: 2px solid #333; padding-top: 1em; }
+        nav { margin-bottom: 1em; }
+        .flash { padding: 10px; border-radius: 5px; margin-bottom: 1em; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/">計算機首頁</a> | <a href="/records">查看歷史紀錄</a>
+        </nav>
+        <h1>加密貨幣開倉計算機</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-messages">
+            {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form method="post">
+            <div class="form-group">
+                <label for="total_capital">總資金 ($):</label>
+                <input type="number" id="total_capital" name="total_capital" required step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="margin_to_use">投入的保證金 ($):</label>
+                <input type="number" id="margin_to_use" name="margin_to_use" required step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="entry_price">開倉價格 ($):</label>
+                <input type="number" id="entry_price" name="entry_price" required step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="take_profit_price">止盈價格 ($):</label>
+                <input type="number" id="take_profit_price" name="take_profit_price" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="profit_amount">最大利潤金額 ($):</label>
+                <input type="number" id="profit_amount" name="profit_amount" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="profit_percentage">最大利潤百分比 (%):</label>
+                <input type="number" id="profit_percentage" name="profit_percentage" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="stop_loss_price">止損點價格 ($):</label>
+                <input type="number" id="stop_loss_price" name="stop_loss_price" required step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="max_loss_amount">最大虧損金額 ($):</label>
+                <input type="number" id="max_loss_amount" name="max_loss_amount" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="max_loss_percentage">最大虧損百分比 (%):</label>
+                <input type="number" id="max_loss_percentage" name="max_loss_percentage" step="0.01">
+            </div>
+            <button type="submit">計算並儲存</button>
+        </form>
+
+        {% if result %}
+        <div class="result">
+            <h2>計算結果</h2>
+            <p>最大虧損金額: <strong>${{ result.max_loss_amount }}</strong></p>
+            <p>最大虧損百分比: <strong>{{ result.max_loss_percentage }}</strong></p>
+            <p>止損百分比: <strong>{{ result.stop_loss_percentage }}</strong></p>
+            <p>建議開倉的倉位大小: <strong>${{ result.position_size }}</strong></p>
+            <p>所需的槓桿倍數: <strong>{{ result.leverage }}</strong></p>
+            <p>止盈價格: <strong>${{ result.take_profit_price }}</strong></p>
+            <p>獲得的利潤金額: <strong>${{ result.profit_amount }}</strong></p>
+            <p>利潤百分比: <strong>{{ result.profit_percentage }}</strong></p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
