@@ -187,7 +187,53 @@ def records():
     with get_db_connection() as conn:
         records = conn.execute("SELECT * FROM records ORDER BY timestamp DESC").fetchall()
     
-    return render_template('records.html', records=records)
+    # 計算並將手續費和實際盈虧加入每個紀錄
+    updated_records = []
+    for record in records:
+        record_dict = dict(record)
+        
+        # 假設 maker_fee = 0.02% (0.0002) 和 taker_fee = 0.05% (0.0005)
+        # 這些值應與 index 頁面中的欄位輸入一致
+        maker_fee = 0.0002
+        taker_fee = 0.0005
+
+        # 計算手續費
+        open_fee = record_dict['position_size'] * taker_fee
+        close_fee = record_dict['position_size'] * maker_fee
+        total_fee = open_fee + close_fee
+
+        record_dict['total_fee'] = total_fee
+
+        # 計算實際利潤金額和百分比
+        if record_dict['profit_amount'] is not None:
+            final_profit_amount = record_dict['profit_amount'] - total_fee
+            record_dict['final_profit_amount'] = final_profit_amount
+            if record_dict['margin_to_use'] > 0:
+                final_profit_percentage = (final_profit_amount / record_dict['margin_to_use']) * 100
+                record_dict['final_profit_percentage'] = final_profit_percentage
+            else:
+                record_dict['final_profit_percentage'] = None
+        else:
+            record_dict['final_profit_amount'] = None
+            record_dict['final_profit_percentage'] = None
+        
+        # 計算實際虧損金額和百分比
+        if record_dict['max_loss_amount'] is not None:
+            final_loss_amount = record_dict['max_loss_amount'] + total_fee
+            record_dict['final_loss_amount'] = final_loss_amount
+            if record_dict['margin_to_use'] > 0:
+                final_loss_percentage = (final_loss_amount / record_dict['margin_to_use']) * 100
+                record_dict['final_loss_percentage'] = final_loss_percentage
+            else:
+                record_dict['final_loss_percentage'] = None
+        else:
+            record_dict['final_loss_amount'] = None
+            record_dict['final_loss_percentage'] = None
+
+        updated_records.append(record_dict)
+
+    return render_template('records.html', records=updated_records)
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)
