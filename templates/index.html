@@ -58,6 +58,14 @@
                 <input type="number" id="profit_percentage" name="profit_percentage" step="0.01">
             </div>
             <div class="form-group">
+                <label for="maker_fee">掛單方手續費 (%):</label>
+                <input type="number" id="maker_fee" name="maker_fee" step="0.01" value="0.02">
+            </div>
+            <div class="form-group">
+                <label for="taker_fee">吃單方手續費 (%):</label>
+                <input type="number" id="taker_fee" name="taker_fee" step="0.01" value="0.05">
+            </div>
+            <div class="form-group">
                 <label for="stop_loss_price">止損點價格 ($):</label>
                 <input type="number" id="stop_loss_price" name="stop_loss_price" required step="0.01">
             </div>
@@ -81,10 +89,35 @@
             <p>建議開倉的倉位大小: <strong>${{ result.position_size }}</strong></p>
             <p>所需的槓桿倍數: <strong>{{ result.leverage }}</strong></p>
             <p>止盈價格: <strong>${{ result.take_profit_price }}</strong></p>
-            <p>獲得的利潤金額: <strong>${{ result.profit_amount }}</strong></p>
-            <p>利潤百分比: <strong>{{ result.profit_percentage }}</strong></p>
+            <p>獲得的利潤金額 (未扣除手續費): <strong>${{ result.profit_amount }}</strong></p>
+            <p>利潤百分比 (未扣除手續費): <strong>{{ result.profit_percentage }}</strong></p>
+            <p>總手續費金額: <strong>${{ result.total_fee }}</strong></p>
+            <p>實際利潤金額 (已扣手續費): <strong>${{ result.final_profit_amount }}</strong></p>
+            <p>實際利潤百分比 (已扣手續費): <strong>{{ result.final_profit_percentage }}</strong></p>
         </div>
         {% endif %}
     </div>
+    <script>
+        // 頁面載入時，從 localStorage 載入資料
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const inputs = form.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                const savedValue = localStorage.getItem(input.name);
+                if (savedValue) {
+                    input.value = savedValue;
+                }
+            });
+        });
+
+        // 表單提交時，將資料儲存到 localStorage
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const form = e.target;
+            const inputs = form.querySelectorAll('input[type="number"]');
+            inputs.forEach(input => {
+                localStorage.setItem(input.name, input.value);
+            });
+        });
+    </script>
 </body>
 </html>
