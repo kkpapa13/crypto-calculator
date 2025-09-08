@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 import sqlite3
 
 app = Flask(__name__)
@@ -40,6 +40,8 @@ def index():
             entry_price = float(request.form['entry_price'])
             stop_loss_price = float(request.form['stop_loss_price'])
             margin_to_use = float(request.form['margin_to_use'])
+            maker_fee = float(request.form.get('maker_fee', 0)) / 100
+            taker_fee = float(request.form.get('taker_fee', 0)) / 100
         except (ValueError, TypeError):
             flash("請確認所有數值欄位皆已正確填寫。", 'error')
             return render_template('index.html')
@@ -138,6 +140,21 @@ def index():
                 flash("利潤百分比輸入不正確。", 'error')
                 return render_template('index.html')
 
+        # 計算手續費
+        # 開倉手續費 (假設用吃單方)
+        open_fee = position_size * taker_fee
+        # 平倉手續費 (假設用掛單方)
+        close_fee = position_size * maker_fee
+        total_fee = open_fee + close_fee
+        
+        # 計算實際盈虧 (如果有利潤)
+        final_profit_amount = None
+        final_profit_percentage = None
+        if profit_amount is not None:
+            final_profit_amount = profit_amount - total_fee
+            if margin_to_use > 0:
+                final_profit_percentage = (final_profit_amount / margin_to_use) * 100
+
         # 儲存到資料庫
         with get_db_connection() as conn:
             conn.execute(
@@ -152,10 +169,13 @@ def index():
             'max_loss_percentage': f'{max_loss_percentage:.2f}%',
             'stop_loss_percentage': f'{stop_loss_percentage * 100:.2f}%',
             'position_size': f'{position_size:,.2f}',
-            'leverage': f'{leverage:.0f}x', # 在這裡也修改顯示格式
+            'leverage': f'{leverage:.0f}x',
             'take_profit_price': f'{take_profit_price:.2f}' if take_profit_price is not None else 'N/A',
             'profit_amount': f'{profit_amount:,.2f}' if profit_amount is not None else 'N/A',
-            'profit_percentage': f'{profit_percentage:.2f}%' if profit_percentage is not None else 'N/A'
+            'profit_percentage': f'{profit_percentage:.2f}%' if profit_percentage is not None else 'N/A',
+            'total_fee': f'{total_fee:,.2f}',
+            'final_profit_amount': f'{final_profit_amount:,.2f}' if final_profit_amount is not None else 'N/A',
+            'final_profit_percentage': f'{final_profit_percentage:.2f}%' if final_profit_percentage is not None else 'N/A'
         }
         
         return render_template('index.html', result=result)
@@ -167,15 +187,6 @@ def records():
     with get_db_connection() as conn:
         records = conn.execute("SELECT * FROM records ORDER BY timestamp DESC").fetchall()
     
-    # 移除這裡的預處理邏輯
-    # processed_records = []
-    # for record in records:
-    #     record_dict = dict(record)
-    #     for key in ['max_loss_percentage', 'max_loss_amount', 'stop_loss_percentage', 'take_profit_price', 'profit_amount', 'profit_percentage']:
-    #         if record_dict[key] is None:
-    #             record_dict[key] = 'N/A'
-    #     processed_records.append(record_dict)
-
     return render_template('records.html', records=records)
 
 if __name__ == '__main__':
