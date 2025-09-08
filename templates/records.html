@@ -33,6 +33,11 @@
                     <th>止損價</th>
                     <th>虧損金額</th>
                     <th>虧損%</th>
+                    <th>總手續費</th>
+                    <th>實際利潤金額</th>
+                    <th>實際利潤%</th>
+                    <th>實際虧損金額</th>
+                    <th>實際虧損%</th>
                 </tr>
             </thead>
             <tbody>
@@ -76,6 +81,41 @@
                     <td>
                         {% if record['max_loss_percentage'] is not none %}
                             {{ record['max_loss_percentage']|round(2) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record['total_fee'] is not none %}
+                            ${{ record['total_fee']|round(2) }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record['final_profit_amount'] is not none %}
+                            ${{ record['final_profit_amount']|round(2) }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record['final_profit_percentage'] is not none %}
+                            {{ record['final_profit_percentage']|round(2) }}%
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record['final_loss_amount'] is not none %}
+                            ${{ record['final_loss_amount']|round(2) }}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if record['final_loss_percentage'] is not none %}
+                            {{ record['final_loss_percentage']|round(2) }}%
                         {% else %}
                             N/A
                         {% endif %}
